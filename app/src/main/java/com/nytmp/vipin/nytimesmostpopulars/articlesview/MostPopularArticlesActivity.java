@@ -20,7 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-import com.nytmp.vipin.nytimesmostpopulars.NyTimesSearchApplication;
+import com.nytmp.vipin.nytimesmostpopulars.NyTimesMostPopularsApplication;
 import com.nytmp.vipin.nytimesmostpopulars.R;
 import com.nytmp.vipin.nytimesmostpopulars.data.model.ArticleView;
 import com.nytmp.vipin.nytimesmostpopulars.util.NetworkUtil;
@@ -49,16 +49,17 @@ public class MostPopularArticlesActivity extends AppCompatActivity implements Ar
 
     private RecyclerView mRecyclerView;
 
-    private ArticleAdapter mAdapter;
+    ArticleAdapter mAdapter;
     private EndlessRecyclerViewScrollListener mEndlessScrollListener;
 
     private MenuItem loadingMenuItem;
     private MenuItem searchMenuItem;
-    private MenuItem settingsMenuItem;
 
     private RelativeLayout layoutEmptySearch;
     private RelativeLayout layoutOffline;
     private RelativeLayout layoutContentSearch;
+
+    boolean searchViewEnabled = false;
 
     private Handler uiHandler = new Handler(Looper.getMainLooper());
 
@@ -108,11 +109,11 @@ public class MostPopularArticlesActivity extends AppCompatActivity implements Ar
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                prepareNewSearch();
-                mSubscriptions.add(mViewModel.searchArticles(query, true).subscribe(list -> {
-                }, error -> Log.e(LOG_TAG, error.toString())));
+                searchViewEnabled = true;
+                mAdapter.getFilter().filter(query);
                 return false;
             }
+
 
             @Override
             public boolean onQueryTextChange(String newText) {
@@ -190,7 +191,7 @@ public class MostPopularArticlesActivity extends AppCompatActivity implements Ar
     }
 
     private ArticlesViewModel getViewModel() {
-        return ((NyTimesSearchApplication) getApplication()).getArticlesViewModel();
+        return ((NyTimesMostPopularsApplication) getApplication()).getArticlesViewModel();
     }
 
     private void setupToolbar() {
@@ -211,7 +212,8 @@ public class MostPopularArticlesActivity extends AppCompatActivity implements Ar
         mEndlessScrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                preloadArticles(page);
+
+                if(!searchViewEnabled)preloadArticles(page);
             }
         };
 
@@ -232,6 +234,7 @@ public class MostPopularArticlesActivity extends AppCompatActivity implements Ar
 
     private void addData(List<ArticleView> articles) {
         if (articles != null && articles.size() > 0) {
+            if(!searchViewEnabled)
             mAdapter.addArticles(articles);
         }
     }
@@ -240,7 +243,6 @@ public class MostPopularArticlesActivity extends AppCompatActivity implements Ar
         Log.d(LOG_TAG, "dataIsLoading(): " + isLoading);
         if (loadingMenuItem != null) loadingMenuItem.setVisible(isLoading);
         if (searchMenuItem != null) searchMenuItem.setVisible(!isLoading);
-        if (settingsMenuItem != null) settingsMenuItem.setVisible(!isLoading);
     }
 
     private void showHideOfflineLayout(boolean isOffline) {

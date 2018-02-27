@@ -4,6 +4,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 
 import com.bumptech.glide.Glide;
 import com.nytmp.vipin.nytimesmostpopulars.R;
@@ -16,14 +18,23 @@ import java.util.List;
  * Created by Vipin Vasu on 21/02/18.
  */
 
-public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements Filterable {
 
     private List<ArticleView> articles = new ArrayList<>();
-
+    private List<ArticleView> articlesCopy = new ArrayList<>();
     private static final int ARTICLE_ITEM_TYPE = 0;
     private static final int MEDIA_ARTICLE_ITEM_TYPE = 1;
 
     private OnArticleClickListener mArticleClickListener;
+    ArticlesFilter articlesFilter;
+
+    @Override
+    public Filter getFilter() {
+        if (articlesFilter == null) {
+            articlesFilter = new ArticlesFilter();
+        }
+        return articlesFilter;
+    }
 
     public interface OnArticleClickListener {
         void onArticleClick(ArticleView articleView);
@@ -80,6 +91,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public void setArticles(List<ArticleView> newArticles) {
         articles = newArticles == null ? new ArrayList<>() : new ArrayList<>(newArticles);
+        articlesCopy = newArticles == null ? new ArrayList<>() : new ArrayList<>(newArticles);
         notifyDataSetChanged();
     }
 
@@ -88,16 +100,50 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (articles != null && articles.size() > 0) {
             int startPosition = getItemCount();
             articles.addAll(newArticles);
+            articlesCopy.addAll(newArticles);
             notifyItemRangeInserted(startPosition, newArticles.size());
         }
         else {
             articles = new ArrayList<>(newArticles);
+            articlesCopy = new ArrayList<>(newArticles);
             notifyDataSetChanged();
         }
     }
 
     public void clearData() {
         articles.clear();
+        articlesCopy.clear();
         notifyDataSetChanged();
+    }
+
+    private class ArticlesFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            FilterResults results = new FilterResults();
+
+            if (constraint != null && constraint.length() > 0) {
+                List filterList = new ArrayList();
+                for (int i = 0; i < articlesCopy.size(); i++) {
+                    if ((articlesCopy.get(i).getTitle().toUpperCase()).contains(constraint.toString().toUpperCase())) {
+                        filterList.add(articlesCopy.get(i));
+                    }
+                }
+                results.count = filterList.size();
+                results.values = filterList;
+            } else {
+                results.count = articlesCopy.size();
+                results.values = articlesCopy;
+            }
+            return results;
+
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint,
+                                      FilterResults results) {
+            articles = (List) results.values;
+            notifyDataSetChanged();
+        }
+
     }
 }

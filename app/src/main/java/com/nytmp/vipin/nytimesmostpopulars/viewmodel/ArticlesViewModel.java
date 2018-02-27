@@ -64,7 +64,6 @@ public class ArticlesViewModel {
         isLoadingSubject.onNext(true);
 
         if (updateQuery) filter.setQuery(query);
-        filter.setPage(0);
 
         return mDataModel.searchArticles(filter)
                 .subscribeOn(mSchedulerProvider.computation())
@@ -85,7 +84,6 @@ public class ArticlesViewModel {
 
     public Observable<List<ArticleView>> preloadArticles(int page) {
         Log.d(LOG_TAG, "loadMoreArticles page: " + page);
-        filter.setPage(page);
 
         return mDataModel.searchArticles(filter)
                 .subscribeOn(mSchedulerProvider.computation())

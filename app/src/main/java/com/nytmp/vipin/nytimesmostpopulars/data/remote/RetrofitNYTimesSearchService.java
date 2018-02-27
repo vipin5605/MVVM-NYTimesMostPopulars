@@ -16,7 +16,7 @@ import rx.schedulers.Schedulers;
 public class RetrofitNYTimesSearchService {
 
 
-    public static NYTimesSearchService newNYTSearchService() {
+    public static NYTimesQueryService newNYTSearchService() {
 
         RxJavaCallAdapterFactory rxAdapter = RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io());
 
@@ -25,11 +25,11 @@ public class RetrofitNYTimesSearchService {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(NYTimesSearchService.ENDPOINT)
+                .baseUrl(NYTimesQueryService.ENDPOINT)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(rxAdapter)
                 .build();
 
-        return retrofit.create(NYTimesSearchService.class);
+        return retrofit.create(NYTimesQueryService.class);
     }
 }

@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.nytmp.vipin.nytimesmostpopulars.data.model.Article;
-import com.nytmp.vipin.nytimesmostpopulars.data.remote.NYTimesSearchService;
+import com.nytmp.vipin.nytimesmostpopulars.data.remote.NYTimesQueryService;
 
 import java.util.List;
 
@@ -20,19 +20,19 @@ public class DataRepository implements IDataModel {
 
     private static DataRepository instance = null;
 
-    private NYTimesSearchService mRemoteService;
+    private NYTimesQueryService mRemoteService;
 
     private static final String API_KEY = "9a4a2c2f34d7467c93f5d8f13e9ce202";
 
 
 
-    private DataRepository(NYTimesSearchService nyTimesSearchService) {
-        this.mRemoteService = nyTimesSearchService;
+    private DataRepository(NYTimesQueryService nyTimesQueryService) {
+        this.mRemoteService = nyTimesQueryService;
     }
 
-    public static DataRepository getInstance(NYTimesSearchService nyTimesSearchService) {
+    public static DataRepository getInstance(NYTimesQueryService nyTimesQueryService) {
         if (instance == null) {
-            instance = new DataRepository(nyTimesSearchService);
+            instance = new DataRepository(nyTimesQueryService);
         }
         return instance;
     }

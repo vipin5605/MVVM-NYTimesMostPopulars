@@ -2,7 +2,7 @@ package com.nytmp.vipin.nytimesmostpopulars;
 
 import com.nytmp.vipin.nytimesmostpopulars.data.DataRepository;
 import com.nytmp.vipin.nytimesmostpopulars.data.IDataModel;
-import com.nytmp.vipin.nytimesmostpopulars.data.remote.NYTimesSearchService;
+import com.nytmp.vipin.nytimesmostpopulars.data.remote.NYTimesQueryService;
 import com.nytmp.vipin.nytimesmostpopulars.data.remote.RetrofitNYTimesSearchService;
 import com.nytmp.vipin.nytimesmostpopulars.schedulers.ISchedulerProvider;
 import com.nytmp.vipin.nytimesmostpopulars.schedulers.SchedulerProvider;
@@ -29,7 +29,7 @@ public class ArticlesViewModelTest {
     ArticlesViewModel articlesViewModel;
     private ISchedulerProvider mSchedulerProvider;
     private ArticlesViewModel mViewModel;
-    private NYTimesSearchService mRemoteService;
+    private NYTimesQueryService mRemoteService;
 
     private DataRepository dataRepository;
 
@@ -42,7 +42,7 @@ public class ArticlesViewModelTest {
     @Before
     public void setUp() throws Exception {
 
-        mRemoteService = mock(NYTimesSearchService.class);
+        mRemoteService = mock(NYTimesQueryService.class);
         mDataModel = com.nytmp.vipin.nytimesmostpopulars.data.DataRepository.getInstance(RetrofitNYTimesSearchService.newNYTSearchService());
         mSchedulerProvider = SchedulerProvider.getInstance();
         dataRepository = DataRepository.getInstance(mRemoteService);
