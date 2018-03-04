@@ -2,8 +2,10 @@ package com.nytmp.vipin.nytimesmostpopulars;
 
 import android.test.suitebuilder.annotation.SmallTest;
 
+import com.nytmp.vipin.nytimesmostpopulars.data.ArticleSearchFilter;
 import com.nytmp.vipin.nytimesmostpopulars.data.DataRepository;
 import com.nytmp.vipin.nytimesmostpopulars.data.IDataModel;
+import com.nytmp.vipin.nytimesmostpopulars.data.model.Article;
 import com.nytmp.vipin.nytimesmostpopulars.data.model.ArticleView;
 import com.nytmp.vipin.nytimesmostpopulars.data.remote.NYTimesQueryService;
 import com.nytmp.vipin.nytimesmostpopulars.data.remote.RetrofitNYTimesSearchService;
@@ -20,12 +22,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.subjects.BehaviorSubject;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Vipin Vasu on 21/02/18.
@@ -37,13 +42,18 @@ public class ArticlesViewModelTest {
 
     @Mock
     private IDataModel mDataModel;
-    ArticlesViewModel articlesViewModel;
-    private ISchedulerProvider mSchedulerProvider;
+
     private NYTimesQueryService mRemoteService;
 
+    ArticlesViewModel articlesViewModel;
+
+    private ISchedulerProvider mSchedulerProvider;
     private DataRepository dataRepository;
-    private TestSubscriber<ArticleView> articleViewTestSubscriber;
+    private TestSubscriber<List<ArticleView>> articleViewTestSubscriber;
     private TestSubscriber<Boolean> testSubscriberIsLoadingSubject;
+    private TestSubscriber mCompletableSubscriber;
+
+    private static List<Article> ARTICLES;
 
 
 
@@ -60,27 +70,49 @@ public class ArticlesViewModelTest {
         mDataModel = com.nytmp.vipin.nytimesmostpopulars.data.DataRepository.getInstance(RetrofitNYTimesSearchService.newNYTSearchService());
         mSchedulerProvider = SchedulerProvider.getInstance();
         dataRepository = DataRepository.getInstance(mRemoteService);
-        articleViewTestSubscriber = TestSubscriber.create();
+        articlesViewModel = new ArticlesViewModel(mSchedulerProvider,mDataModel);
+        articleViewTestSubscriber = new TestSubscriber<>();
+        testSubscriberIsLoadingSubject = new TestSubscriber<>();
+        mCompletableSubscriber = new TestSubscriber<>();
+        ARTICLES = createFakeList();
     }
 
     @Test
     public void testGetArticleData()
     {
-        articlesViewModel = new ArticlesViewModel(mSchedulerProvider, mDataModel);
-        dataRepository.searchArticles(articlesViewModel.getFilter()).subscribeOn(mSchedulerProvider.computation())
-                .observeOn(mSchedulerProvider.ui())
-                .flatMapIterable(list -> list)
-                .map(ArticleView::new)
-                .toList()
-                .doOnNext(list -> {
-                    articleViewTestSubscriber.assertReceivedOnNext(list);
-                })
-                .doOnError(error -> {
-                    testSubscriberIsLoadingSubject.onNext(false);
-                })
-                .doOnTerminate(() -> testSubscriberIsLoadingSubject.onNext(false));
+        withTasksInRepositoryAndSubscribed(ARTICLES);
+    }
+
+    @Test
+    public void testGetArticleDataPreload()
+    {
+        withTasksInRepositoryAndSubscribedPreload(ARTICLES);
+    }
+
+    private void withTasksInRepositoryAndSubscribed(List<Article> articleList){
+        // Given that the task repository returns tasks
+        DataRepository mock = org.mockito.Mockito.mock(DataRepository.class);
+        when(mock.searchArticles(new ArticleSearchFilter())).thenReturn(Observable.just(articleList));
+        // Given that we are subscribed to the tasks
+        articlesViewModel.searchArticles(null, true).subscribe(articleViewTestSubscriber);
+    }
+
+    private void withTasksInRepositoryAndSubscribedPreload(List<Article> articleList){
+        // Given that the task repository returns tasks
+        DataRepository mock = org.mockito.Mockito.mock(DataRepository.class);
+        when(mock.searchArticles(new ArticleSearchFilter())).thenReturn(Observable.just(articleList));
+        // Given that we are subscribed to the tasks
+        articlesViewModel.preloadArticles(1).subscribe(articleViewTestSubscriber);
+    }
 
 
+    private List<Article> createFakeList()
+    {
+        List<Article> results = new ArrayList<>();
+        Article result = new Article();
+        result.setHeadline("Title 1");
+        result.setLeadParagraph("sample data");
+        return results;
     }
 }
 

@@ -40,7 +40,6 @@ public class DataRepository implements IDataModel {
     @NonNull
     @Override
     public Observable<List<Article>> searchArticles(ArticleSearchFilter filter) {
-        Log.d(LOG_TAG, "Try to search articles...filter:" + filter.toString());
 
         return mRemoteService.searchArticles(API_KEY)
                 .map(remoteObject -> remoteObject.getArticles())
